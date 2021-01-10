@@ -2,10 +2,16 @@ from setuptools import setup
 import os
 import chromakey
 
+
+def load_text(path):
+    if os.path.exists(path):
+        with open(path, encoding="utf-8") as f:
+            return f.read()
+
+
 long_description = chromakey.__description__
 if os.path.exists('README.md'):
-    with open("README.md", "r") as fh:
-        long_description = fh.read()
+    long_description = load_text('README.md')
 
 setup(
     name='chromakey',
@@ -20,13 +26,12 @@ setup(
     download_url='https://github.com/mowshon/chromakey',
     keywords=['green screen', 'chroma key', 'remove green screen', 'remove background'],
     classifiers=[
-        'Intended Audience :: Developers',
         'License :: OSI Approved :: MIT License',
-        'Natural Language :: English',
         'Programming Language :: Python',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.7',
         'Topic :: Multimedia :: Video',
         'Topic :: Scientific/Engineering :: Image Processing'
     ],
+    install_requires=load_text("requirements.txt").strip().split("\n"),
 )
