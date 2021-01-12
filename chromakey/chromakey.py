@@ -35,7 +35,8 @@ class Chromakey:
         mask = cv2.bitwise_not(mask)
         mask = Image.fromarray(mask)
 
-    def hsv_range(self, hsv_color: list, lower_ratio: float, upper_raio: float) -> List[numpy.array, numpy.array]:
+    @staticmethod
+    def hsv_range(hsv_color: list, lower_ratio: float, upper_ratio: float) -> List[numpy.array, numpy.array]:
         color_low = [
             hsv_color[0] - int(hsv_color[0] * lower_ratio),
             hsv_color[1] - int(hsv_color[1] * lower_ratio),
@@ -43,9 +44,9 @@ class Chromakey:
         ]
 
         color_high = [
-            hsv_color[0] + int(hsv_color[0] * upper_raio),
-            hsv_color[1] + int(hsv_color[1] * upper_raio),
-            hsv_color[2] + int(hsv_color[2] * upper_raio),
+            hsv_color[0] + int(hsv_color[0] * upper_ratio),
+            hsv_color[1] + int(hsv_color[1] * upper_ratio),
+            hsv_color[2] + int(hsv_color[2] * upper_ratio),
         ]
 
         return [
