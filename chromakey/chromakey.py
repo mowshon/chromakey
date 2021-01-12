@@ -12,7 +12,9 @@ class Chromakey:
 
     __image = None
 
-    def __init__(self, image, color=None, hsv_color_lower=None, hsv_color_upper=None, lower_ratio=0.5, upper_raio=0.5):
+    __mask = None
+
+    def __init__(self, image, color=None, hsv_color_lower=None, hsv_color_upper=None, lower_ratio=0.5, upper_ratio=0.5):
         if isinstance(image, (numpy.ndarray, numpy.generic)):
             self.__image = Image.fromarray(image)
         else:
@@ -21,7 +23,7 @@ class Chromakey:
         hsv_color = self.color_to_hsv(self.background_color(color))
 
         # Get the color range in HSV.
-        color_range = self.hsv_range(hsv_color, lower_ratio, upper_raio)
+        color_range = self.hsv_range(hsv_color, lower_ratio, upper_ratio)
         hsv_low = hsv_color_lower if hsv_color_lower else color_range[0]
         hsv_hight = hsv_color_upper if hsv_color_upper else color_range[1]
 
@@ -33,7 +35,13 @@ class Chromakey:
 
         mask = cv2.inRange(hsv_array, hsv_low, hsv_hight)
         mask = cv2.bitwise_not(mask)
-        mask = Image.fromarray(mask)
+        self.__mask = Image.fromarray(mask)
+
+    def simple_cut(self):
+        empty = Image.new("RGBA", self.__image.size, 0)
+        return Image.composite(
+            self.__image, empty, self.__mask.resize(self.__image.size, Image.LANCZOS)
+        )
 
     @staticmethod
     def hsv_range(hsv_color: list, lower_ratio: float, upper_ratio: float) -> List[numpy.array, numpy.array]:
