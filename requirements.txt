@@ -1,4 +1,3 @@
-chromakey==1.0.0
 llvmlite==0.35.0
 numba==0.52.0
 numpy==1.20.0rc2

@@ -1,6 +1,5 @@
 from setuptools import setup
 import os
-import chromakey
 
 
 def load_text(path):
@@ -9,19 +8,19 @@ def load_text(path):
             return f.read()
 
 
-long_description = chromakey.__description__
+long_description = 'Python Chromakey - Smooth removal of colored backgrounds.'
 if os.path.exists('README.md'):
     long_description = load_text('README.md')
 
 setup(
     name='chromakey',
     packages=['chromakey'],
-    version=chromakey.__version__,
-    license=chromakey.__license__,
-    description=chromakey.__description__,
+    version='1.0.0',
+    license='MIT',
+    description='Python Chromakey - Smooth removal of colored backgrounds.',
     long_description=long_description,
-    author=chromakey.__author__,
-    author_email=chromakey.__email__,
+    author='Mowshon',
+    author_email='mowshon@gmail.com',
     url='https://github.com/mowshon/chromakey',
     download_url='https://github.com/mowshon/chromakey',
     keywords=['green screen', 'chroma key', 'remove green screen', 'remove background'],
