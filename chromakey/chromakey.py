@@ -1,6 +1,5 @@
 from PIL import Image
 import numpy
-from typing import List
 import cv2
 from scipy.ndimage.morphology import binary_erosion
 from pymatting.alpha.estimate_alpha_cf import estimate_alpha_cf
@@ -18,7 +17,7 @@ class Chromakey:
         if isinstance(image, (numpy.ndarray, numpy.generic)):
             self.__image = Image.fromarray(image)
         else:
-            self.__image = Image.open(image, 'RGBA')
+            self.__image = Image.open(image)
 
         hsv_color = self.color_to_hsv(self.background_color(color))
 
@@ -37,14 +36,68 @@ class Chromakey:
         mask = cv2.bitwise_not(mask)
         self.__mask = Image.fromarray(mask)
 
-    def simple_cut(self):
+    def alpha_matting_cutout(
+            self,
+            foreground_threshold=240,
+            background_threshold=10,
+            erode_structure_size=10,
+    ):
+        base_size = (1000, 1000)
+        size = self.__image.size
+
+        self.__image.thumbnail(base_size, Image.LANCZOS)
+        mask = self.__mask.resize(self.__image.size, Image.LANCZOS)
+
+        img = numpy.asarray(self.__image)
+        mask = numpy.asarray(mask)
+
+        self.__image.close()
+        self.__mask.close()
+
+        # Guess likely foreground/background
+        is_foreground = mask > foreground_threshold
+        is_background = mask < background_threshold
+
+        # Erode foreground/background
+        structure = None
+        if erode_structure_size > 0:
+            structure = numpy.ones((erode_structure_size, erode_structure_size), dtype=numpy.int)
+
+        is_foreground = binary_erosion(is_foreground, structure=structure)
+        is_background = binary_erosion(is_background, structure=structure, border_value=1)
+
+        trimap = numpy.full(mask.shape, dtype=numpy.uint8, fill_value=128)
+        trimap[is_foreground] = 255
+        trimap[is_background] = 0
+
+        # Build the cutout image
+        img_normalized = img / 255.0
+        trimap_normalized = trimap / 255.0
+
+        alpha = estimate_alpha_cf(img_normalized, trimap_normalized)
+        foreground = estimate_foreground_ml(img_normalized, alpha)
+        cutout = stack_images(foreground, alpha)
+
+        cutout = numpy.clip(cutout * 255, 0, 255).astype(numpy.uint8)
+        cutout = Image.fromarray(cutout)
+        cutout = cutout.resize(size, Image.LANCZOS)
+
+        return cutout
+
+    def simple_cutout(self):
         empty = Image.new("RGBA", self.__image.size, 0)
-        return Image.composite(
+        image = Image.composite(
             self.__image, empty, self.__mask.resize(self.__image.size, Image.LANCZOS)
         )
 
+        self.__image.close()
+        empty.close()
+        self.__mask.close()
+
+        return image
+
     @staticmethod
-    def hsv_range(hsv_color: list, lower_ratio: float, upper_ratio: float) -> List[numpy.array, numpy.array]:
+    def hsv_range(hsv_color: list, lower_ratio: float, upper_ratio: float) -> [numpy.array, numpy.array]:
         color_low = [
             hsv_color[0] - int(hsv_color[0] * lower_ratio),
             hsv_color[1] - int(hsv_color[1] * lower_ratio),
