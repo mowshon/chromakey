@@ -41,7 +41,7 @@ class Chromakey:
             foreground_threshold=240,
             background_threshold=10,
             erode_structure_size=10,
-    ):
+    ) -> Image:
         base_size = (1000, 1000)
         size = self.__image.size
 
@@ -84,10 +84,10 @@ class Chromakey:
 
         return cutout
 
-    def simple_cutout(self):
+    def simple_cutout(self) -> Image:
         empty = Image.new("RGBA", self.__image.size, 0)
         image = Image.composite(
-            self.__image, empty, self.__mask.resize(self.__image.size, Image.LANCZOS)
+            self.__image, empty, self.__mask
         )
 
         self.__image.close()
