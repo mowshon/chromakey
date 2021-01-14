@@ -36,6 +36,12 @@ class Chromakey:
         mask = cv2.bitwise_not(mask)
         self.__mask = Image.fromarray(mask)
 
+    def get_mask(self):
+        return self.__mask
+
+    def get_image(self):
+        return self.__image
+
     def alpha_matting_cutout(
             self,
             foreground_threshold=240,
